@@ -1,0 +1,40 @@
+application:
+  subdomain: cloudbeaver
+  multi_instance: false
+  upstreams:
+    - location: /package-licenses/
+      backend: file:///lzcapp/pkg/content/licenses/
+    - location: /
+      backend: http://cloudbeaver:8978/
+
+services:
+  cloudbeaver:
+    # upstream: dbeaver/cloudbeaver:26.2.4
+    image: docker.1ms.run/dbeaver/cloudbeaver:26.2.4
+    environment:
+      - TZ=Asia/Shanghai
+    binds:
+      # The workspace holds users, connections and drivers. The first-run
+      # admin account lives here, so this must persist across restarts.
+      - /lzcapp/var/workspace:/opt/cloudbeaver/workspace
+
+usage: |
+  CloudBeaver 是浏览器里的数据库客户端，DBeaver 的网页版。
+
+  使用方法：
+  1. 首次打开会进入初始化向导，**设置管理员账号和密码**（这一步由你自己填，包内没有内置口令）。
+  2. 登录后点左上角"新建连接"，选数据库类型（PostgreSQL / MySQL / SQLite / MariaDB 等），
+     填主机、端口、库名、用户名和密码，测试通过后保存。
+  3. 双击连接打开 SQL 编辑器，可以写查询、看表结构和数据、导出结果。
+  4. 多个连接和查询记录都会保存在工作区里，下次打开还在。
+
+  数据与安全：
+  - 用户、连接配置和驱动都保存在 /lzcapp/var/workspace，卸载应用会一并删除，请定期备份。
+  - 管理员账号由你在首次向导里创建，不存在内置弱口令。
+  - 连接数据库用的密码保存在工作区内，请自行保护好该应用账号。
+  - 应用经懒猫入口鉴权访问。
+
+  说明：
+  - 单容器部署，CloudBeaver 只是客户端工具，**本身不包含数据库**，需要连接已有的库。
+  - 连接同一局域网/内网里的数据库时，请用容器能访问到的主机名或 IP。
+  - 未做真机验证：初始化向导、建立连接、执行 SQL 以及重启后持久化均未在设备上实测。
